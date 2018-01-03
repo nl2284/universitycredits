@@ -137,7 +137,6 @@ enrolled_active_units<-left_join(enrolled_active_units,
          enrolled=ifelse(is.na(enrolled),0, enrolled))
   
 
-
 ### Step 3: The following code create multiple columns showing 
 ###total enrolled students in previous semesters. 
 ###We will use number of enrolled students in previous semesters to predict
@@ -145,39 +144,31 @@ enrolled_active_units<-left_join(enrolled_active_units,
 #### semester
 
 ###3.1. create a function to produce a certain number of columns showing 
-####previous N semesters enrollment. Not sure if this is useful...
+####previous N semesters enrollment. 
 
-n_sem_enrollment<-function(df, num_obs, n){
+n_sem_enrollment<-function(df, n){
   ###take the enrolled column from the active_active_units data frame
   enrolled<-df$enrolled
-  n_years<-data.frame()
+  num_obs=nrow(df)
+  n_sems<-data.frame()
+  
   for(i in 1:num_obs){
     for(j in 1:n){
-      if(i<=j){n_years[i, j]=NA
+      if(i<=j){n_sems[i, j]=NA
       }else{
-        n_years[i, j]=enrolled[i-j]
+        n_sems[i, j]=enrolled[i-j]
       }
     }
   }
-  colnames(n_years)=paste("enroll_sem_", 1:n)
-  df<-data.frame(df, n_years)
+  colnames(n_sems)=paste("enroll_sem_", 1:n)
+  df<-data.frame(df, n_sems)
 }
 
-###3.2. here append 10 years of enrollment data to each observation
-enrolled_active_units<-n_sem_enrollment(enrolled_active_units, 364, 10)
+###3.2. split the dataframe by program, calculate n-sem enrollment
+df_ls=split(enrolled_active_units, f = enrolled_active_units$curriculum_name, drop=FALSE)
 
-###3.3. The following code take a subset of the enrolled_active_units by selecting only 
-###the 11 programs of interest. I am sure about the other programs, need to check with Jennah.
-enrolled_active_units2<-enrolled_active_units %>% 
-  filter(curriculum_name %in% c("DSW-6 Semester", "MSN-5 Semester FT", 
-                                "MSN-8 Semester PT", "MSW-3 Semester AS",
-                                "MSW-4 Semester","MSW-5 Semester AS",
-                                "MSW-6 Semester", "MSW-6 Semester",
-                                "MSW-8 Semester", "MSW-Modified 8 Semester",
-                                "MSW-Part Time")) %>%
-  arrange(curriculum_name)
+###3.3. here append 10 years of enrollment data to each observation for each program
+enrollment_ls<-lapply(df_ls, n_sem_enrollment,10)
+enrolled_active_units2<-bind_rows(enrollment_ls)
 
-###3.4. save the two data frames for analysis
-saveRDS(enrolled_active_units, "enrolled_active_units.RDS")
-saveRDS(enrolled_active_units2, "enrolled_active_units_subset.RDS")
 
