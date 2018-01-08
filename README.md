@@ -6,4 +6,4 @@
 ##by_student_analysis.R: produce a data frame with each student in each row, variables include Y (dropout) and Xs including various variables to predict droptout. The data frame will be used for classification.
   One extra thing to do: compute distance to school based on zip code information
 
-##unitsPred.R: to predict total units by enrolled students in previous N semesters. (The analysis has many problems, need to improve the models)
+##unitsPred_v2.R: to predict total units by enrolled students in previous N semesters. Tried several regression models. The models have relatively high R square. The major problem is that error rate is much bigger at two ends. The constant variance assumption might be violated.
